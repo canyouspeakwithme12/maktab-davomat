@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>O'qituvchi - Sinf tanlash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-8 rounded-xl shadow-lg max-w-sm w-full border-t-4 border-green-500">
+        <div class="text-center mb-6">
+            <span class="text-4xl">👩‍🏫</span>
+            <h2 class="text-2xl font-bold mt-2">Sinfingizni tanlang</h2>
+            <p class="text-gray-500 text-sm">Yo'qlamani boshlash uchun</p>
+        </div>
+        
+        <form method="POST">
+            <div class="mb-6">
+                <select name="class_name" class="block w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 font-bold text-center" required>
+                    <option value="" disabled selected>-- Sinfni tanlang --</option>
+                    {% for cls in classes %}
+                        <option value="{{ cls }}">{{ cls }} sinf</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition">Yo'qlamani boshlash</button>
+        </form>
+        
+        <div class="mt-4 text-center">
+            <a href="/" class="text-sm text-green-600 hover:underline">Asosiy sahifaga qaytish</a>
+        </div>
+    </div>
+</body>
+</html>
