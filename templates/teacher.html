@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>O'qituvchi - Yo'qlama</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-6 font-sans">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">{{ class_name }} sinf yo'qlamasi</h1>
+                <p class="text-gray-600">Bugungi sana: <span class="font-bold">{{ today }}</span></p>
+            </div>
+            <a href="/teacher_login" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition">Sinfni o'zgartirish</a>
+        </div>
+
+        {% if is_locked %}
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+            <p class="font-bold">Vaqt tugadi!</p>
+            <p>Soat 18:00 dan o'tganligi sababli yo'qlama bazasi qulflangan. O'zgartirish kiritish uchun ma'muriyat (admin) bilan bog'laning.</p>
+        </div>
+        {% endif %}
+
+        <!-- Student Add Form -->
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8 border-l-4 border-blue-500">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Yangi o'quvchi qo'shish (Maksimal 40 ta)</h2>
+            <p class="text-sm text-gray-500 mb-4">Sinfingiz ro'yxatini to'ldiring. Hozirda <b>{{ students|length }}</b>/40 o'quvchi kiritilgan.</p>
+            
+            {% if students|length < 40 %}
+            <form action="/add_student" method="POST" class="flex gap-4">
+                <input type="hidden" name="class_name" value="{{ class_name }}">
+                <input type="text" name="student_name" placeholder="F.I.Sh (Masalan: Aliyev Vali G'ani o'g'li)" required class="flex-grow shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" {% if is_locked %}disabled{% endif %}>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded transition disabled:opacity-50" {% if is_locked %}disabled{% endif %}>Qo'shish</button>
+            </form>
+            {% else %}
+            <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                Sinf to'ldi (40 ta o'quvchi). Boshqa o'quvchi qo'shib bo'lmaydi.
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="bg-white shadow-xl rounded-lg overflow-hidden mb-8">
+            <table class="min-w-full table-auto border-collapse">
+                <thead>
+                    <tr class="bg-green-600 text-white">
+                        <th class="px-6 py-4 text-left font-semibold">T/R</th>
+                        <th class="px-6 py-4 text-left font-semibold">O'quvchi F.I.Sh</th>
+                        <th class="px-6 py-4 text-center font-semibold">Davomat belgilash</th>
+                        <th class="px-6 py-4 text-center font-semibold">Amal</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% if students %}
+                        {% for student in students %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 text-gray-500">{{ loop.index }}</td>
+                            <td class="px-6 py-4 font-medium text-gray-900">{{ student.name }}</td>
+                            <td class="px-6 py-4 text-center">
+                                <form method="POST" class="flex justify-center gap-2">
+                                    <input type="hidden" name="student_id" value="{{ student.id }}">
+                                    {% set status = att_map.get(student.id, '') %}
+                                    
+                                    <button type="submit" name="status" value="" class="px-4 py-2 rounded font-bold border transition disabled:opacity-50
+                                        {% if status == '' %}bg-green-500 text-white border-green-600{% else %}bg-white text-gray-600 hover:bg-green-50 border-gray-300{% endif %}" {% if is_locked %}disabled{% endif %}>
+                                        Keldi (✔)
+                                    </button>
+                                    
+                                    <!-- Endi S sababsiz (qizil), DQ sababli (sariq) -->
+                                    <button type="submit" name="status" value="S" class="px-4 py-2 rounded font-bold border transition disabled:opacity-50
+                                        {% if status == 'S' %}bg-red-500 text-white border-red-600{% else %}bg-white text-gray-600 hover:bg-red-50 border-gray-300{% endif %}" {% if is_locked %}disabled{% endif %}>
+                                        Sababsiz (S)
+                                    </button>
+                                    
+                                    <button type="submit" name="status" value="DQ" class="px-4 py-2 rounded font-bold border transition disabled:opacity-50
+                                        {% if status == 'DQ' %}bg-yellow-400 text-yellow-900 border-yellow-500{% else %}bg-white text-gray-600 hover:bg-yellow-50 border-gray-300{% endif %}" {% if is_locked %}disabled{% endif %}>
+                                        Sababli (DQ)
+                                    </button>
+                                </form>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <form action="/delete_student/{{ student.id }}" method="POST" onsubmit="return confirm('Siz rostdan ham ushbu o\'quvchini ro\'yxatdan o\'chirmoqchimisiz?');">
+                                    <input type="hidden" name="class_name" value="{{ class_name }}">
+                                    <button type="submit" class="text-red-500 hover:text-red-700 font-bold p-2 disabled:opacity-50" {% if is_locked %}disabled{% endif %}>🗑 O'chirish</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-12 text-center text-gray-500 text-lg">
+                                Hozircha sinfingizda o'quvchilar yo'q. Yuqoridagi shakl orqali o'quvchilarni qo'shing.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg p-6 mb-8 border-t-4 border-yellow-500">
+            <h2 class="text-xl font-bold mb-2 text-gray-800">Sinf rahbari izohi</h2>
+            <p class="text-sm text-gray-500 mb-4">Bugungi kun uchun qo'shimcha ma'lumotlar (M: Chet elda, To'garakda va h.k) bo'lsa kiriting.</p>
+            <form method="POST">
+                <textarea name="class_comment" rows="4" class="w-full shadow-sm border border-gray-300 rounded-md p-3 text-gray-700 focus:ring-yellow-500 focus:border-yellow-500" placeholder="Izohingizni shu yerga yozing..." {% if is_locked %}disabled{% endif %}>{{ current_comment }}</textarea>
+                <div class="mt-4 flex justify-end">
+                    <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded transition disabled:opacity-50" {% if is_locked %}disabled{% endif %}>Izohni saqlash</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</body>
+</html>
